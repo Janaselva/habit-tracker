@@ -582,6 +582,11 @@
     if(h) h.archived = false;
     queueSave(); renderAll();
   }
+  function deleteHabitPermanently(id){
+    if(!isEditable()) return;
+    members[uid].habits = members[uid].habits.filter(x=>x.id!==id);
+    queueSave(); renderAll();
+  }
   function toggleCheckbox(id){
     if(!isEditable()) return;
     const key = todayKey();
@@ -726,11 +731,18 @@
             <div class="habit-name">${escapeHtml(h.name)}</div>
             <div style="font-size:11px; color:var(--sub); margin-top:2px;">${escapeHtml(h.category || 'Other')}</div>
           </div>
-          ${editable ? `<button class="restore-btn" data-restore="${h.id}">Restore</button>` : ''}
+          ${editable ? `
+            <div style="display:flex; gap:8px; flex-shrink:0;">
+              <button class="restore-btn" data-restore="${h.id}">Restore</button>
+              <button class="restore-btn" data-delete="${h.id}" style="color:var(--red); border-color:var(--red);">Delete</button>
+            </div>` : ''}
         </div>
       `).join('');
       if(editable){
         document.querySelectorAll('[data-restore]').forEach(el=> el.addEventListener('click', ()=> restoreHabit(el.dataset.restore)));
+        document.querySelectorAll('[data-delete]').forEach(el=> el.addEventListener('click', ()=>{
+          if(confirm('Delete this habit permanently? This cannot be undone.')) deleteHabitPermanently(el.dataset.delete);
+        }));
       }
     }
   }
