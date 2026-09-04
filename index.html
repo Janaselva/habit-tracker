@@ -155,6 +155,12 @@
     <input type="password" id="passwordInput" placeholder="Password" style="padding:11px 13px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit;">
     <button class="btn btn-primary" id="signInBtn">Sign in</button>
     <button class="btn btn-ghost" id="createAcctBtn">Create account</button>
+    <div style="display:flex; align-items:center; gap:10px; margin:4px 0; color:var(--sub); font-size:12px;">
+      <div style="flex:1; height:1px; background:var(--line);"></div>
+      or
+      <div style="flex:1; height:1px; background:var(--line);"></div>
+    </div>
+    <button class="btn btn-ghost" id="googleSignInBtn">Sign in with Google</button>
   </div>
 
   <p id="signinError" style="color:#B84D2E; display:none;"></p>
@@ -319,6 +325,16 @@
     }
   });
 
+  document.getElementById('googleSignInBtn').addEventListener('click', async ()=>{
+    document.getElementById('notFamily').style.display = 'none';
+    document.getElementById('signinError').style.display = 'none';
+    try{
+      await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    } catch(err){
+      showAuthError(err.message);
+    }
+  });
+
   document.getElementById('signOutBtn').addEventListener('click', ()=> {
     if(unsubscribe) unsubscribe();
     auth.signOut();
@@ -330,7 +346,7 @@
     if(user){
       uid = user.uid;
       myEmail = user.email;
-      myName = pendingSignupName || myEmail;
+      myName = pendingSignupName || user.displayName || user.email;
       viewingUid = uid;
 
       try{
