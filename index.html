@@ -292,6 +292,12 @@
     font-family:'Inter',sans-serif; font-size:15px; font-weight:700; cursor:pointer;
   }
   .btn-fast-primary:hover{background:#4038C9;}
+  .fast-time-field{display:none; margin-bottom:14px;}
+  .fast-time-field input{
+    width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:10px; font-size:14px;
+    font-family:'Inter',sans-serif; background:var(--bg);
+  }
+  .fast-time-error{color:var(--red); font-size:12px; margin:-8px 0 12px; display:none;}
 
   .fast-active-block{display:flex; flex-direction:column; align-items:center; padding:30px 22px 24px;}
   .fast-ring-wrap{position:relative; width:172px; height:172px;}
@@ -400,10 +406,6 @@
         <div class="streak-row" id="streakRow"></div>
 
         <div id="habitList"></div>
-      </div>
-
-      <div class="sheet" id="fastCardWrap">
-        <div id="fastCard"></div>
       </div>
 
       <div class="sheet" id="addSheetWrap">
@@ -909,9 +911,15 @@
   // ---------- Fasting ----------
   let selectedFastGoal = 16;
 
-  function startFast(goalHours){
+  function startFast(goalHours, customStartIso){
     if(!isEditable()) return;
-    members[uid].activeFast = { startTime: new Date().toISOString(), goalHours };
+    const startTime = customStartIso || new Date().toISOString();
+    if(new Date(startTime).getTime() > Date.now()){
+      const err = document.getElementById('fastTimeError');
+      if(err){ err.textContent = "Start time can't be in the future."; err.style.display = 'block'; }
+      return;
+    }
+    members[uid].activeFast = { startTime, goalHours };
     queueSave();
     renderAll();
   }
@@ -981,8 +989,94 @@
     const m = Math.round((hours - h) * 60);
     return `${h}h ${m}m`;
   }
+  function hFmtSec(hours){
+    const totalSec = Math.max(0, Math.floor(hours * 3600));
+    const h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60), s = totalSec%60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  // Where the Fasting row/tab should live: its own stored category once it exists (user-editable),
+  // defaulting to Health before it's ever been created.
+  function fastingDisplayCategory(data){
+    const h = data.habits.find(x => x.id === FASTING_HABIT_ID);
+    return h ? (h.category || 'Other') : 'Health';
+  }
+  // Visible unless the habit exists and has been explicitly archived.
+  function fastingVisible(data){
+    const h = data.habits.find(x => x.id === FASTING_HABIT_ID);
+    return !h || !h.archived;
+  }
+  function updateFastTabVisibility(){
+    const data = activeData();
+    const visible = fastingVisible(data);
+    const btn = document.querySelector('.page-tabs button[data-page="fast"]');
+    if(!btn) return;
+    btn.style.display = visible ? '' : 'none';
+    if(!visible && document.getElementById('page-fast').classList.contains('active')){
+      document.querySelector('.page-tabs button[data-page="track"]').click();
+    }
+  }
 
-  // Renders both the Track-page fasting card and the Fast tab; called on every renderAll() and every timer tick.
+  // Builds the Fasting row embedded inside its category's list (idle or in-progress state)
+  function fastingRowHtml(data, editable){
+    const af = data.activeFast;
+    const habit = data.habits.find(h => h.id === FASTING_HABIT_ID);
+    const links = (editable && habit) ? `<div class="habit-links"><button class="link-btn" data-fast-edit="1">Edit</button><button class="link-btn" data-fast-archive="1">Archive</button></div>` : '';
+
+    if(af){
+      const elapsedHours = (Date.now() - new Date(af.startTime).getTime()) / 3600000;
+      const pct = Math.min(100, (elapsedHours / af.goalHours) * 100);
+      const reached = elapsedHours >= af.goalHours;
+      const circ = 2 * Math.PI * 24;
+      const offset = circ - (pct/100) * circ;
+      const btn = editable ? `<button class="row-btn end" data-fast-end="1">End</button>` : '';
+      return `
+        <div class="habit-row">
+          <div class="habit-ring">
+            <svg width="58" height="58" viewBox="0 0 58 58">
+              <circle cx="29" cy="29" r="24" fill="none" stroke="${reached?'#DEFBEA':'#EEEDFF'}" stroke-width="7"/>
+              <circle cx="29" cy="29" r="24" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="7"
+                stroke-linecap="round" transform="rotate(-90 29 29)"
+                stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .4s ease"/>
+            </svg>
+            <div class="habit-ring-center" style="color:${reached?'#0E8F52':'#3730A3'};">${Math.round(pct)}%</div>
+          </div>
+          <div class="habit-info">
+            <div class="habit-name">Fasting — ${hFmtSec(elapsedHours)}</div>
+            <div class="habit-sub" style="${reached?'color:#0E8F52; font-weight:700;':''}">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
+            ${links}
+          </div>
+          ${btn}
+        </div>`;
+    }
+    const entries = fastingLogs(data);
+    const last = entries.length ? entries[entries.length-1] : null;
+    const btn = editable ? `<button class="row-btn start" data-fast-start="1">Start</button>` : '';
+    return `
+      <div class="habit-row">
+        <div class="habit-ring">
+          <svg width="58" height="58" viewBox="0 0 58 58"><circle cx="29" cy="29" r="24" fill="none" stroke="#ECEEF5" stroke-width="7"/></svg>
+          <div class="habit-ring-center" style="color:var(--sub);">⏱️</div>
+        </div>
+        <div class="habit-info">
+          <div class="habit-name">Fasting</div>
+          <div class="habit-sub">${last ? `Last fast: ${hFmt(last.hours)} · ${last.date===todayKey()?'today':last.date}` : 'Not started yet'}</div>
+          ${links}
+        </div>
+        ${btn}
+      </div>`;
+  }
+  function bindFastingRowEvents(container, editable){
+    if(!editable) return;
+    const startBtn = container.querySelector('[data-fast-start]');
+    if(startBtn) startBtn.addEventListener('click', ()=> document.querySelector('.page-tabs button[data-page="fast"]').click());
+    const endBtn = container.querySelector('[data-fast-end]');
+    if(endBtn) endBtn.addEventListener('click', endFast);
+    const editBtn = container.querySelector('[data-fast-edit]');
+    if(editBtn) editBtn.addEventListener('click', ()=> startEdit(FASTING_HABIT_ID));
+    const archBtn = container.querySelector('[data-fast-archive]');
+    if(archBtn) archBtn.addEventListener('click', ()=> archiveHabit(FASTING_HABIT_ID));
+  }
+
   function renderFasting(){
     const data = activeData();
     const editable = isEditable();
@@ -990,53 +1084,8 @@
     const habit = data.habits.find(h => h.id === FASTING_HABIT_ID);
     const defaultGoal = habit ? habit.target : selectedFastGoal;
 
-    // --- Track-page card ---
-    const cardEl = document.getElementById('fastCard');
-    if(af){
-      const elapsedHours = (Date.now() - new Date(af.startTime).getTime()) / 3600000;
-      const pct = Math.min(100, (elapsedHours / af.goalHours) * 100);
-      const reached = elapsedHours >= af.goalHours;
-      const circ = 2 * Math.PI * 21;
-      const offset = circ - (pct/100) * circ;
-      cardEl.innerHTML = `
-        <div class="fast-card">
-          <div class="fast-mini-ring">
-            <svg width="52" height="52" viewBox="0 0 52 52">
-              <circle cx="26" cy="26" r="21" fill="none" stroke="#ECEEF5" stroke-width="6"/>
-              <circle cx="26" cy="26" r="21" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="6"
-                stroke-linecap="round" transform="rotate(-90 26 26)"
-                stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .4s ease"/>
-            </svg>
-            <div class="fast-mini-center">${Math.round(pct)}%</div>
-          </div>
-          <div class="fast-card-info">
-            <div class="fast-card-title">Fasting — ${hFmt(elapsedHours)}</div>
-            <div class="fast-card-sub">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
-          </div>
-          ${editable ? `<button class="fast-card-btn end" id="cardEndFastBtn">End</button>` : ''}
-        </div>`;
-      if(editable) document.getElementById('cardEndFastBtn').addEventListener('click', endFast);
-    } else {
-      const entries = fastingLogs(data);
-      const last = entries.length ? entries[entries.length-1] : null;
-      cardEl.innerHTML = `
-        <div class="fast-card">
-          <div class="fast-mini-ring">
-            <svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="21" fill="none" stroke="#ECEEF5" stroke-width="6"/></svg>
-            <div class="fast-mini-center">⏱️</div>
-          </div>
-          <div class="fast-card-info">
-            <div class="fast-card-title">Fasting</div>
-            <div class="fast-card-sub">${last ? `Last fast: ${hFmt(last.hours)} · ${last.date === todayKey() ? 'today' : last.date}` : 'Not started yet'}</div>
-          </div>
-          ${editable ? `<button class="fast-card-btn start" id="cardStartFastBtn">Start</button>` : ''}
-        </div>`;
-      if(editable) document.getElementById('cardStartFastBtn').addEventListener('click', ()=>{
-        document.querySelector('.page-tabs button[data-page="fast"]').click();
-      });
-    }
+    updateFastTabVisibility();
 
-    // --- Fast tab ---
     const timerArea = document.getElementById('fastTimerArea');
     if(!editable && !af){
       timerArea.innerHTML = `<div class="fast-readonly-note">No active fast right now.</div>`;
@@ -1057,7 +1106,7 @@
                 stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .5s ease"/>
             </svg>
             <div class="fast-ring-center">
-              <div class="fast-elapsed ${reached?'reached':''}">${hFmt(elapsedHours)}</div>
+              <div class="fast-elapsed ${reached?'reached':''}">${hFmtSec(elapsedHours)}</div>
               <div class="fast-elapsed-sub">elapsed</div>
             </div>
           </div>
@@ -1081,7 +1130,7 @@
                 stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .5s ease"/>
             </svg>
             <div class="fast-ring-center">
-              <div class="fast-elapsed ${reached?'reached':''}">${hFmt(elapsedHours)}</div>
+              <div class="fast-elapsed ${reached?'reached':''}">${hFmtSec(elapsedHours)}</div>
               <div class="fast-elapsed-sub">elapsed</div>
             </div>
           </div>
@@ -1096,10 +1145,17 @@
       timerArea.innerHTML = `
         <div class="start-block">
           <h2>Ready to fast?</h2>
-          <p>Pick a goal, then start whenever you're ready.</p>
+          <p>Pick a goal, then start now — or backdate it if you already started.</p>
           <div class="goal-row" id="goalRow">
             ${goals.map(g => `<div class="goal-chip ${g===defaultGoal?'selected':''}" data-hours="${g}">${g}h</div>`).join('')}
           </div>
+          <label class="toggle-row">
+            <input type="checkbox" id="backdateToggle"> I already started — set the actual time
+          </label>
+          <div class="fast-time-field" id="fastTimeField">
+            <input type="datetime-local" id="fastCustomTime">
+          </div>
+          <p class="fast-time-error" id="fastTimeError"></p>
           <button class="btn-fast-primary" id="startFastBtn">Start fasting</button>
         </div>`;
       selectedFastGoal = defaultGoal;
@@ -1110,7 +1166,24 @@
           selectedFastGoal = parseInt(chip.dataset.hours);
         });
       });
-      document.getElementById('startFastBtn').addEventListener('click', ()=> startFast(selectedFastGoal));
+      document.getElementById('backdateToggle').addEventListener('change', e=>{
+        document.getElementById('fastTimeField').style.display = e.target.checked ? 'block' : 'none';
+        if(e.target.checked){
+          const now = new Date();
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+          document.getElementById('fastCustomTime').value = now.toISOString().slice(0,16);
+        }
+      });
+      document.getElementById('startFastBtn').addEventListener('click', ()=>{
+        const backdated = document.getElementById('backdateToggle').checked;
+        let customIso = null;
+        if(backdated){
+          const val = document.getElementById('fastCustomTime').value;
+          if(!val) return;
+          customIso = new Date(val).toISOString();
+        }
+        startFast(selectedFastGoal, customIso);
+      });
     }
 
     // --- KPIs & trends ---
@@ -1151,9 +1224,11 @@
     }).join('') : `<div class="empty-row">No fasts logged yet.</div>`;
   }
 
-  // Live-tick the fasting UI every second without disturbing the rest of the page
+  // Live-tick the fasting UI every second — only while an active fast exists, to avoid unnecessary work otherwise
   setInterval(()=>{
-    if(document.getElementById('app').style.display !== 'none') renderFasting();
+    if(document.getElementById('app').style.display === 'none') return;
+    const data = activeData();
+    if(data.activeFast){ renderToday(); renderFasting(); }
   }, 1000);
 
   // ---------- Streaks ----------
@@ -1244,7 +1319,10 @@
     streakRow.innerHTML = badges;
 
     const list = document.getElementById('habitList');
-    if(total === 0){
+    const showFasting = isToday && fastingVisible(data);
+    const fastingCat = fastingDisplayCategory(data);
+
+    if(total === 0 && !showFasting){
       list.innerHTML = `<div class="empty-row">${editable ? (isToday ? "Nothing scheduled today — add a habit below, or restore an archived one." : "Nothing was scheduled on this day.") : "Nothing scheduled."}</div>`;
     } else {
       // stable color per habit based on position in the full active (non-archived) list
@@ -1254,10 +1332,11 @@
       let html = '';
       CATEGORIES.forEach(cat=>{
         const inCat = active.filter(h => (h.category||'Other') === cat);
-        if(inCat.length === 0) return;
+        const includeFastingHere = showFasting && cat === fastingCat;
+        if(inCat.length === 0 && !includeFastingHere) return;
         const collapsed = !!collapsedCats[cat];
         html += `<div class="cat-header" data-cat="${cat}">
-          <span><span class="cat-name">${cat}</span><span class="cat-count">${inCat.length}</span></span>
+          <span><span class="cat-name">${cat}</span><span class="cat-count">${inCat.length + (includeFastingHere?1:0)}</span></span>
           <span class="cat-chevron ${collapsed?'collapsed':''}">⌄</span>
         </div>`;
         html += `<div class="cat-body ${collapsed?'collapsed':''}">`;
@@ -1312,9 +1391,11 @@
               </div>
             </div>`;
         }).join('');
+        if(includeFastingHere) html += fastingRowHtml(data, editable);
         html += `</div>`;
       });
       list.innerHTML = html;
+      bindFastingRowEvents(list, editable);
     }
 
     list.querySelectorAll('.cat-header').forEach(el=>{
