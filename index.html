@@ -259,6 +259,82 @@
     font-size:12px; font-weight:700; color:var(--ink); cursor:pointer; font-family:'Inter',sans-serif;
   }
   .restore-btn:hover{border-color:var(--indigo); color:var(--indigo);}
+
+  /* ---- Fasting: Track-page card ---- */
+  .fast-card{display:flex; align-items:center; gap:14px; padding:16px 20px;}
+  .fast-mini-ring{position:relative; width:52px; height:52px; flex-shrink:0;}
+  .fast-mini-center{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Plus Jakarta Sans',sans-serif; font-size:10.5px; font-weight:800;
+  }
+  .fast-card-info{flex:1; min-width:0;}
+  .fast-card-title{font-family:'Plus Jakarta Sans',sans-serif; font-size:14.5px; font-weight:700;}
+  .fast-card-sub{font-size:12px; color:var(--sub); margin-top:2px;}
+  .fast-card-btn{
+    flex-shrink:0; padding:8px 15px; border-radius:100px; border:none;
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+  .fast-card-btn.start{background:var(--indigo-soft); color:var(--indigo);}
+  .fast-card-btn.end{background:var(--coral-soft); color:#C93A22;}
+
+  /* ---- Fasting: Fast-tab timer ---- */
+  .start-block{padding:28px 22px;}
+  .start-block h2{font-family:'Plus Jakarta Sans',sans-serif; font-size:19px; font-weight:800; margin-bottom:6px;}
+  .start-block p{font-size:13px; color:var(--sub); margin-bottom:18px;}
+  .goal-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
+  .goal-chip{
+    padding:10px 16px; border-radius:100px; border:1.5px solid var(--line); background:var(--bg);
+    font-family:'Plus Jakarta Sans',sans-serif; font-size:13.5px; font-weight:700; color:var(--ink); cursor:pointer;
+  }
+  .goal-chip.selected{background:var(--indigo); border-color:var(--indigo); color:#fff;}
+  .btn-fast-primary{
+    width:100%; padding:15px 0; border-radius:100px; border:none; background:var(--indigo); color:#fff;
+    font-family:'Inter',sans-serif; font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .btn-fast-primary:hover{background:#4038C9;}
+
+  .fast-active-block{display:flex; flex-direction:column; align-items:center; padding:30px 22px 24px;}
+  .fast-ring-wrap{position:relative; width:172px; height:172px;}
+  .fast-ring-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .fast-elapsed{font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:30px; letter-spacing:-0.02em; color:var(--ink);}
+  .fast-elapsed.reached{color:var(--green);}
+  .fast-elapsed-sub{font-size:12px; color:var(--sub); font-weight:600; margin-top:-2px;}
+  .fast-goal-line{font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; margin-top:16px; color:var(--sub);}
+  .fast-goal-line.reached{color:var(--green);}
+  .stage-badge{
+    margin-top:14px; display:flex; align-items:center; gap:7px;
+    background:var(--amber-soft); color:#9A6300; padding:9px 16px; border-radius:100px;
+    font-size:13px; font-weight:700;
+  }
+  .stage-badge.burn{background:var(--coral-soft); color:#C93A22;}
+  .stage-badge.ketosis{background:var(--green-soft); color:#0E8F52;}
+  .stage-note{font-size:11.5px; color:var(--sub); text-align:center; margin-top:8px; max-width:280px; line-height:1.5;}
+  .btn-fast-end{
+    width:100%; margin-top:22px; padding:14px 0; border-radius:100px; border:none;
+    background:var(--coral-soft); color:#C93A22; font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer;
+  }
+  .btn-fast-end:hover{background:#FFD9CF;}
+  .fast-readonly-note{font-size:12.5px; color:var(--sub); text-align:center; padding:22px;}
+
+  /* ---- Fasting: KPIs & trends ---- */
+  .kpi-row{display:flex; padding:18px 18px 4px;}
+  .kpi{flex:1; text-align:center;}
+  .kpi-val{font-family:'Plus Jakarta Sans',sans-serif; font-size:20px; font-weight:800; color:var(--ink);}
+  .kpi-label{font-size:11px; color:var(--sub); font-weight:600; margin-top:2px;}
+  .trend-head{padding:18px 18px 4px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13.5px; font-weight:700;}
+  .trend-bars{display:flex; align-items:flex-end; gap:8px; height:70px; padding:12px 18px 4px;}
+  .tbar-wrap{flex:1; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;}
+  .tbar{width:100%; background:var(--line); border-radius:5px 5px 0 0; display:flex; align-items:flex-end; overflow:hidden; min-height:4px;}
+  .tbar-fill{width:100%; border-radius:5px 5px 0 0;}
+  .tbar-day{font-size:9.5px; color:var(--sub); margin-top:6px; font-weight:600; font-family:'Plus Jakarta Sans',sans-serif;}
+  .recent-head{padding:20px 18px 4px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13.5px; font-weight:700;}
+  .frow{display:flex; align-items:center; gap:12px; padding:11px 18px; border-top:1px solid var(--line);}
+  .frow-date{font-size:13px; font-weight:600; flex:1;}
+  .frow-dur{font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; color:var(--sub);}
+  .frow-check{
+    width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:#fff; flex-shrink:0;
+  }
 </style>
 </head>
 <body>
@@ -294,6 +370,7 @@
 
     <div class="page-tabs">
       <button data-page="track" class="active">Track</button>
+      <button data-page="fast">Fast</button>
       <button data-page="reports">Reports</button>
     </div>
 
@@ -323,6 +400,10 @@
         <div class="streak-row" id="streakRow"></div>
 
         <div id="habitList"></div>
+      </div>
+
+      <div class="sheet" id="fastCardWrap">
+        <div id="fastCard"></div>
       </div>
 
       <div class="sheet" id="addSheetWrap">
@@ -363,6 +444,19 @@
         <h2>Archived</h2>
         <div class="archived-sub">Off the daily list — every day already logged still counts in history.</div>
         <div id="archivedList"></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-fast">
+      <div class="sheet">
+        <div id="fastTimerArea"></div>
+      </div>
+      <div class="sheet">
+        <div class="kpi-row" id="fastKpiRow"></div>
+        <div class="trend-head">Last 7 days</div>
+        <div class="trend-bars" id="fastTrendBars"></div>
+        <div class="recent-head">Recent fasts</div>
+        <div id="fastRecentList"></div>
       </div>
     </div>
 
@@ -408,6 +502,7 @@
   };
   const COLLECTION = "habit_tracker_users";
   const CATEGORIES = ['Health', 'Fitness', 'Mindfulness', 'Learning', 'Productivity', 'Other'];
+  const FASTING_HABIT_ID = 'fasting_habit';
   const DOW = ['M','T','W','T','F','S','S'];
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const HABIT_COLORS = [
@@ -617,7 +712,8 @@
           displayName: data.displayName || data.email || 'Member',
           email: data.email || '',
           habits: data.habits || [],
-          logs: data.logs || {}
+          logs: data.logs || {},
+          activeFast: data.activeFast || null
         };
       });
       members = next;
@@ -635,7 +731,8 @@
         displayName: myName,
         email: myEmail,
         habits: members[uid].habits,
-        logs: members[uid].logs
+        logs: members[uid].logs,
+        activeFast: members[uid].activeFast || null
       }).catch(err=>console.error('Save failed', err));
     }, 400);
   }
@@ -809,10 +906,260 @@
     renderAll();
   }
 
+  // ---------- Fasting ----------
+  let selectedFastGoal = 16;
+
+  function startFast(goalHours){
+    if(!isEditable()) return;
+    members[uid].activeFast = { startTime: new Date().toISOString(), goalHours };
+    queueSave();
+    renderAll();
+  }
+  function endFast(){
+    if(!isEditable()) return;
+    const af = members[uid].activeFast;
+    if(!af) return;
+    const elapsedHours = Math.round(((Date.now() - new Date(af.startTime).getTime()) / 3600000) * 10) / 10;
+    let h = members[uid].habits.find(x => x.id === FASTING_HABIT_ID);
+    if(!h){
+      h = { id:FASTING_HABIT_ID, name:'Fasting', type:'numeric', target:af.goalHours, unit:'hours', step:0.5, category:'Health', weeklyDays:null, createdAt: todayKey() };
+      members[uid].habits.push(h);
+    } else {
+      h.target = af.goalHours;
+    }
+    const key = todayKey();
+    if(!members[uid].logs[key]) members[uid].logs[key] = {};
+    members[uid].logs[key][FASTING_HABIT_ID] = elapsedHours;
+    members[uid].activeFast = null;
+    queueSave();
+    renderAll();
+  }
+
+  function fastStageFor(hours){
+    if(hours < 4) return { cls:'', emoji:'🍽️', label:'Fed state', note:"Your body is still digesting your last meal." };
+    if(hours < 12) return { cls:'', emoji:'⚡', label:'Blood sugar settling', note:"Insulin is dropping as your last meal clears your system." };
+    if(hours < 16) return { cls:'burn', emoji:'🔥', label:'Fat burning begins', note:"Glycogen stores are running low — your body starts shifting toward fat for fuel." };
+    if(hours < 20) return { cls:'burn', emoji:'🔥', label:'Deeper fat burning', note:"Fat burning continues to ramp up the longer you stay in this window." };
+    return { cls:'ketosis', emoji:'🧬', label:'Ketosis territory', note:"Around this point many people report being in ketosis — this varies person to person, and isn't medical advice." };
+  }
+
+  function fastingLogs(data){
+    return Object.keys(data.logs)
+      .filter(k => data.logs[k] && data.logs[k][FASTING_HABIT_ID] !== undefined)
+      .sort()
+      .map(k => ({ date:k, hours: data.logs[k][FASTING_HABIT_ID] }));
+  }
+  function fastingGoalStreak(data){
+    const habit = data.habits.find(h => h.id === FASTING_HABIT_ID);
+    const entries = fastingLogs(data);
+    if(!habit || entries.length === 0) return 0;
+    const goal = habit.target;
+    let streak = 0;
+    let cursor = new Date();
+    const earliest = parseKey(entries[0].date);
+    while(cursor >= earliest){
+      const key = fmt(cursor);
+      const entry = data.logs[key] && data.logs[key][FASTING_HABIT_ID];
+      if(entry !== undefined){
+        if(entry >= goal) streak++;
+        else break;
+      }
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+  function fastingStats(data){
+    const entries = fastingLogs(data);
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 6); weekAgo.setHours(0,0,0,0);
+    const last7 = entries.filter(e => parseKey(e.date) >= weekAgo);
+    const avg7 = last7.length ? (last7.reduce((s,e) => s + e.hours, 0) / last7.length) : 0;
+    const longest = entries.length ? Math.max(...entries.map(e => e.hours)) : 0;
+    return { avg7, longest, entries };
+  }
+  function hFmt(hours){
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return `${h}h ${m}m`;
+  }
+
+  // Renders both the Track-page fasting card and the Fast tab; called on every renderAll() and every timer tick.
+  function renderFasting(){
+    const data = activeData();
+    const editable = isEditable();
+    const af = data.activeFast;
+    const habit = data.habits.find(h => h.id === FASTING_HABIT_ID);
+    const defaultGoal = habit ? habit.target : selectedFastGoal;
+
+    // --- Track-page card ---
+    const cardEl = document.getElementById('fastCard');
+    if(af){
+      const elapsedHours = (Date.now() - new Date(af.startTime).getTime()) / 3600000;
+      const pct = Math.min(100, (elapsedHours / af.goalHours) * 100);
+      const reached = elapsedHours >= af.goalHours;
+      const circ = 2 * Math.PI * 21;
+      const offset = circ - (pct/100) * circ;
+      cardEl.innerHTML = `
+        <div class="fast-card">
+          <div class="fast-mini-ring">
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle cx="26" cy="26" r="21" fill="none" stroke="#ECEEF5" stroke-width="6"/>
+              <circle cx="26" cy="26" r="21" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="6"
+                stroke-linecap="round" transform="rotate(-90 26 26)"
+                stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .4s ease"/>
+            </svg>
+            <div class="fast-mini-center">${Math.round(pct)}%</div>
+          </div>
+          <div class="fast-card-info">
+            <div class="fast-card-title">Fasting — ${hFmt(elapsedHours)}</div>
+            <div class="fast-card-sub">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
+          </div>
+          ${editable ? `<button class="fast-card-btn end" id="cardEndFastBtn">End</button>` : ''}
+        </div>`;
+      if(editable) document.getElementById('cardEndFastBtn').addEventListener('click', endFast);
+    } else {
+      const entries = fastingLogs(data);
+      const last = entries.length ? entries[entries.length-1] : null;
+      cardEl.innerHTML = `
+        <div class="fast-card">
+          <div class="fast-mini-ring">
+            <svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="21" fill="none" stroke="#ECEEF5" stroke-width="6"/></svg>
+            <div class="fast-mini-center">⏱️</div>
+          </div>
+          <div class="fast-card-info">
+            <div class="fast-card-title">Fasting</div>
+            <div class="fast-card-sub">${last ? `Last fast: ${hFmt(last.hours)} · ${last.date === todayKey() ? 'today' : last.date}` : 'Not started yet'}</div>
+          </div>
+          ${editable ? `<button class="fast-card-btn start" id="cardStartFastBtn">Start</button>` : ''}
+        </div>`;
+      if(editable) document.getElementById('cardStartFastBtn').addEventListener('click', ()=>{
+        document.querySelector('.page-tabs button[data-page="fast"]').click();
+      });
+    }
+
+    // --- Fast tab ---
+    const timerArea = document.getElementById('fastTimerArea');
+    if(!editable && !af){
+      timerArea.innerHTML = `<div class="fast-readonly-note">No active fast right now.</div>`;
+    } else if(!editable && af){
+      const elapsedHours = (Date.now() - new Date(af.startTime).getTime()) / 3600000;
+      const pct = Math.min(100, (elapsedHours / af.goalHours) * 100);
+      const reached = elapsedHours >= af.goalHours;
+      const circ = 2 * Math.PI * 78;
+      const offset = circ - (pct/100) * circ;
+      const stage = fastStageFor(elapsedHours);
+      timerArea.innerHTML = `
+        <div class="fast-active-block">
+          <div class="fast-ring-wrap">
+            <svg width="172" height="172" viewBox="0 0 172 172">
+              <circle cx="86" cy="86" r="78" fill="none" stroke="#ECEEF5" stroke-width="13"/>
+              <circle cx="86" cy="86" r="78" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="13"
+                stroke-linecap="round" transform="rotate(-90 86 86)"
+                stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .5s ease"/>
+            </svg>
+            <div class="fast-ring-center">
+              <div class="fast-elapsed ${reached?'reached':''}">${hFmt(elapsedHours)}</div>
+              <div class="fast-elapsed-sub">elapsed</div>
+            </div>
+          </div>
+          <div class="fast-goal-line ${reached?'reached':''}">${reached ? 'Goal reached' : `Goal: ${af.goalHours}h`}</div>
+          <div class="stage-badge ${stage.cls}">${stage.emoji} ${stage.label}</div>
+        </div>`;
+    } else if(af){
+      const elapsedHours = (Date.now() - new Date(af.startTime).getTime()) / 3600000;
+      const pct = Math.min(100, (elapsedHours / af.goalHours) * 100);
+      const reached = elapsedHours >= af.goalHours;
+      const circ = 2 * Math.PI * 78;
+      const offset = circ - (pct/100) * circ;
+      const stage = fastStageFor(elapsedHours);
+      timerArea.innerHTML = `
+        <div class="fast-active-block">
+          <div class="fast-ring-wrap">
+            <svg width="172" height="172" viewBox="0 0 172 172">
+              <circle cx="86" cy="86" r="78" fill="none" stroke="#ECEEF5" stroke-width="13"/>
+              <circle cx="86" cy="86" r="78" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="13"
+                stroke-linecap="round" transform="rotate(-90 86 86)"
+                stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .5s ease"/>
+            </svg>
+            <div class="fast-ring-center">
+              <div class="fast-elapsed ${reached?'reached':''}">${hFmt(elapsedHours)}</div>
+              <div class="fast-elapsed-sub">elapsed</div>
+            </div>
+          </div>
+          <div class="fast-goal-line ${reached?'reached':''}">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
+          <div class="stage-badge ${stage.cls}">${stage.emoji} ${stage.label}</div>
+          <div class="stage-note">${stage.note}</div>
+          <button class="btn-fast-end" id="endFastBtn">End fast</button>
+        </div>`;
+      document.getElementById('endFastBtn').addEventListener('click', endFast);
+    } else {
+      const goals = [12,14,16,18,20,24];
+      timerArea.innerHTML = `
+        <div class="start-block">
+          <h2>Ready to fast?</h2>
+          <p>Pick a goal, then start whenever you're ready.</p>
+          <div class="goal-row" id="goalRow">
+            ${goals.map(g => `<div class="goal-chip ${g===defaultGoal?'selected':''}" data-hours="${g}">${g}h</div>`).join('')}
+          </div>
+          <button class="btn-fast-primary" id="startFastBtn">Start fasting</button>
+        </div>`;
+      selectedFastGoal = defaultGoal;
+      document.querySelectorAll('#goalRow .goal-chip').forEach(chip=>{
+        chip.addEventListener('click', ()=>{
+          document.querySelectorAll('#goalRow .goal-chip').forEach(c=>c.classList.remove('selected'));
+          chip.classList.add('selected');
+          selectedFastGoal = parseInt(chip.dataset.hours);
+        });
+      });
+      document.getElementById('startFastBtn').addEventListener('click', ()=> startFast(selectedFastGoal));
+    }
+
+    // --- KPIs & trends ---
+    const stats = fastingStats(data);
+    const streak = fastingGoalStreak(data);
+    document.getElementById('fastKpiRow').innerHTML = `
+      <div class="kpi"><div class="kpi-val">${stats.avg7 ? stats.avg7.toFixed(1)+'h' : '—'}</div><div class="kpi-label">avg (7d)</div></div>
+      <div class="kpi"><div class="kpi-val">${stats.longest ? stats.longest.toFixed(1)+'h' : '—'}</div><div class="kpi-label">longest</div></div>
+      <div class="kpi"><div class="kpi-val">${streak}</div><div class="kpi-label">goal streak</div></div>
+    `;
+
+    const last7Days = [];
+    for(let i=6; i>=0; i--){ const d = new Date(); d.setDate(d.getDate()-i); last7Days.push(d); }
+    const goalForBars = habit ? habit.target : selectedFastGoal;
+    const maxH = Math.max(...stats.entries.map(e=>e.hours), goalForBars, 1);
+    document.getElementById('fastTrendBars').innerHTML = last7Days.map(d=>{
+      const key = fmt(d);
+      const entry = data.logs[key] && data.logs[key][FASTING_HABIT_ID];
+      const dayLabel = d.toLocaleDateString([], { weekday:'short' })[0];
+      if(entry === undefined){
+        return `<div class="tbar-wrap"><div class="tbar" style="height:100%;"><div class="tbar-fill" style="height:4%; background:var(--line)"></div></div><div class="tbar-day">${dayLabel}</div></div>`;
+      }
+      const h = Math.max(4, Math.round((entry / maxH) * 100));
+      const color = entry >= goalForBars ? 'var(--green)' : (entry >= goalForBars*0.75 ? 'var(--amber)' : 'var(--red)');
+      return `<div class="tbar-wrap"><div class="tbar" style="height:100%;"><div class="tbar-fill" style="height:${h}%; background:${color}"></div></div><div class="tbar-day">${dayLabel}</div></div>`;
+    }).join('');
+
+    const recent = stats.entries.slice(-10).reverse();
+    document.getElementById('fastRecentList').innerHTML = recent.length ? recent.map(e=>{
+      const met = habit && e.hours >= habit.target;
+      const dLabel = parseKey(e.date).toLocaleDateString([], { month:'short', day:'numeric' });
+      return `
+        <div class="frow">
+          <div class="frow-date">${dLabel}</div>
+          <div class="frow-dur">${hFmt(e.hours)}</div>
+          <div class="frow-check" style="background:${met?'var(--green)':'var(--line)'}; color:${met?'#fff':'var(--sub)'};">${met?'✓':''}</div>
+        </div>`;
+    }).join('') : `<div class="empty-row">No fasts logged yet.</div>`;
+  }
+
+  // Live-tick the fasting UI every second without disturbing the rest of the page
+  setInterval(()=>{
+    if(document.getElementById('app').style.display !== 'none') renderFasting();
+  }, 1000);
+
   // ---------- Streaks ----------
   function dayPct(data, dateKey){
     const d = new Date(dateKey);
-    const scheduled = data.habits.filter(h => isScheduled(h, d));
+    const scheduled = data.habits.filter(h => h.id !== FASTING_HABIT_ID && isScheduled(h, d));
     if(scheduled.length === 0) return null;
     const log = data.logs[dateKey] || {};
     const done = scheduled.filter(h => isDone(h, log[h.id])).length;
@@ -861,7 +1208,7 @@
     const log = data.logs[key] || {};
     const todayDate = parseKey(viewingDate);
     const activeAll = data.habits.filter(h => !h.archived);
-    const active = activeAll.filter(h => isScheduled(h, todayDate));
+    const active = activeAll.filter(h => h.id !== FASTING_HABIT_ID && isScheduled(h, todayDate));
     const total = active.length;
     const done = active.filter(h => isDone(h, log[h.id])).length;
     const pct = total === 0 ? 0 : Math.round((done/total)*100);
@@ -1060,7 +1407,7 @@
       const key = fmt(d);
       if(key > todayStr) return;
       const log = data.logs[key] || {};
-      data.habits.forEach(h=>{ if(!isScheduled(h,d)) return; totalPossible++; if(isDone(h, log[h.id])) totalDone++; });
+      data.habits.forEach(h=>{ if(h.id===FASTING_HABIT_ID) return; if(!isScheduled(h,d)) return; totalPossible++; if(isDone(h, log[h.id])) totalDone++; });
     });
     const pct = totalPossible ? Math.round((totalDone/totalPossible)*100) : 0;
     document.getElementById('periodPct').innerHTML = `<b>${pct}%</b> completed this week`;
@@ -1124,7 +1471,7 @@
     dateObjs.forEach(d=>{
       const key = fmt(d);
       const log = data.logs[key] || {};
-      data.habits.forEach(h=>{ if(!isScheduled(h,d)) return; totalPossible++; if(isDone(h, log[h.id])) totalDone++; });
+      data.habits.forEach(h=>{ if(h.id===FASTING_HABIT_ID) return; if(!isScheduled(h,d)) return; totalPossible++; if(isDone(h, log[h.id])) totalDone++; });
     });
     const pct = totalPossible ? Math.round((totalDone/totalPossible)*100) : 0;
     document.getElementById('periodPct').innerHTML = `<b>${pct}%</b> completed in ${MONTHS[month]}`;
@@ -1161,7 +1508,7 @@
     dateObjs.forEach(d=>{
       const key = fmt(d);
       const log = data.logs[key] || {};
-      data.habits.forEach(h=>{ if(!isScheduled(h,d)) return; totalPossible++; if(isDone(h, log[h.id])) totalDone++; });
+      data.habits.forEach(h=>{ if(h.id===FASTING_HABIT_ID) return; if(!isScheduled(h,d)) return; totalPossible++; if(isDone(h, log[h.id])) totalDone++; });
     });
     const pct = totalPossible ? Math.round((totalDone/totalPossible)*100) : 0;
     document.getElementById('periodPct').innerHTML = `<b>${pct}%</b> completed in ${yearAnchor}`;
@@ -1196,6 +1543,7 @@
   function renderAll(){
     renderToday();
     renderHistory();
+    renderFasting();
   }
 </script>
 
