@@ -86,6 +86,18 @@
   .stat-line{font-family:'Plus Jakarta Sans', sans-serif; font-size:16px; font-weight:700; margin-top:16px; text-align:center;}
   .stat-line.celebrate{color:var(--green);}
   .date-line{font-size:12.5px; color:var(--sub); margin-top:3px;}
+  .date-nav{display:flex; align-items:center; gap:10px; margin-top:3px;}
+  .date-nav-btn{
+    background:none; border:none; font-size:15px; color:var(--sub); cursor:pointer;
+    padding:2px 6px; border-radius:6px;
+  }
+  .date-nav-btn:hover{background:var(--indigo-soft); color:var(--indigo);}
+  .date-nav-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .date-nav-btn:disabled:hover{background:none; color:var(--sub);}
+  .jump-today{
+    margin-top:6px; background:none; border:none; color:var(--indigo); font-size:12px;
+    font-weight:700; text-decoration:underline; cursor:pointer; font-family:'Inter',sans-serif;
+  }
 
   .streak-row{display:flex; gap:8px; padding:16px 20px; overflow-x:auto;}
   .streak-badge{
@@ -291,7 +303,12 @@
             </div>
           </div>
           <div class="stat-line" id="todayCount"></div>
-          <div class="date-line" id="todayDate"></div>
+          <div class="date-nav">
+            <button id="prevDayBtn" class="date-nav-btn">‹</button>
+            <div class="date-line" id="todayDate"></div>
+            <button id="nextDayBtn" class="date-nav-btn">›</button>
+          </div>
+          <button class="jump-today" id="jumpTodayBtn" style="display:none;">Jump to today</button>
         </div>
 
         <div class="streak-row" id="streakRow"></div>
@@ -410,6 +427,8 @@
   // ---------- Date helpers ----------
   function fmt(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   function todayKey(){ return fmt(new Date()); }
+  function parseKey(key){ const [y,m,d] = key.split('-').map(Number); return new Date(y, m-1, d); }
+  let viewingDate = todayKey(); // the date currently shown/edited on the Track page
   function startOfWeek(d){ const nd=new Date(d); const day=(nd.getDay()+6)%7; nd.setDate(nd.getDate()-day); nd.setHours(0,0,0,0); return nd; }
   function weekdayIdx(d){ return (d.getDay()+6)%7; }
   function isScheduled(habit, d){
@@ -427,6 +446,25 @@
   let yearAnchor = new Date().getFullYear();
 
   document.getElementById('categorySelect').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  // ---------- Day navigation (Track page) ----------
+  document.getElementById('prevDayBtn').addEventListener('click', ()=>{
+    const d = parseKey(viewingDate);
+    d.setDate(d.getDate() - 1);
+    viewingDate = fmt(d);
+    renderToday();
+  });
+  document.getElementById('nextDayBtn').addEventListener('click', ()=>{
+    if(viewingDate >= todayKey()) return;
+    const d = parseKey(viewingDate);
+    d.setDate(d.getDate() + 1);
+    viewingDate = fmt(d);
+    renderToday();
+  });
+  document.getElementById('jumpTodayBtn').addEventListener('click', ()=>{
+    viewingDate = todayKey();
+    renderToday();
+  });
 
   // ---------- Page tabs ----------
   document.querySelectorAll('.page-tabs button').forEach(btn=>{
@@ -745,14 +783,14 @@
   }
   function toggleCheckbox(id){
     if(!isEditable()) return;
-    const key = todayKey();
+    const key = viewingDate;
     if(!members[uid].logs[key]) members[uid].logs[key] = {};
     members[uid].logs[key][id] = !members[uid].logs[key][id];
     queueSave(); renderAll();
   }
   function adjustNumeric(id, delta){
     if(!isEditable()) return;
-    const key = todayKey();
+    const key = viewingDate;
     if(!members[uid].logs[key]) members[uid].logs[key] = {};
     members[uid].logs[key][id] = Math.max(0, (members[uid].logs[key][id]||0) + delta);
     queueSave(); renderAll();
@@ -810,9 +848,9 @@
   function renderToday(){
     const data = activeData();
     const editable = isEditable();
-    const key = todayKey();
+    const key = viewingDate;
     const log = data.logs[key] || {};
-    const todayDate = new Date();
+    const todayDate = parseKey(viewingDate);
     const activeAll = data.habits.filter(h => !h.archived);
     const active = activeAll.filter(h => isScheduled(h, todayDate));
     const total = active.length;
@@ -828,11 +866,16 @@
 
     document.getElementById('ringPct').className = 'ring-pct' + (complete ? ' celebrate' : '');
     document.getElementById('ringPct').textContent = complete ? '✓' : pct + '%';
-    document.getElementById('ringSub').textContent = complete ? 'complete' : 'today';
+    const isToday = viewingDate === todayKey();
+    document.getElementById('ringSub').textContent = complete ? 'complete' : (isToday ? 'today' : '');
     const countEl = document.getElementById('todayCount');
     countEl.className = 'stat-line' + (complete ? ' celebrate' : '');
-    countEl.textContent = complete ? `${done} of ${total} done today` : `${done} of ${total} done today`;
+    countEl.textContent = complete
+      ? (isToday ? 'All done — nice work!' : `All done on this day`)
+      : `${done} of ${total} done${isToday ? ' today' : ''}`;
     document.getElementById('todayDate').textContent = todayDate.toLocaleDateString([], { weekday:'long', month:'long', day:'numeric' });
+    document.getElementById('nextDayBtn').disabled = (viewingDate >= todayKey());
+    document.getElementById('jumpTodayBtn').style.display = (viewingDate === todayKey()) ? 'none' : 'inline-block';
 
     const { current, best } = computeStreaks(data);
     const streakRow = document.getElementById('streakRow');
@@ -846,7 +889,7 @@
 
     const list = document.getElementById('habitList');
     if(total === 0){
-      list.innerHTML = `<div class="empty-row">${editable ? "Nothing scheduled today — add a habit below, or restore an archived one." : "Nothing scheduled today."}</div>`;
+      list.innerHTML = `<div class="empty-row">${editable ? (isToday ? "Nothing scheduled today — add a habit below, or restore an archived one." : "Nothing was scheduled on this day.") : "Nothing scheduled."}</div>`;
     } else {
       // stable color per habit based on position in the full active (non-archived) list
       const colorIndex = {};
