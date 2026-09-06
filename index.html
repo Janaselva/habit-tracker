@@ -86,17 +86,26 @@
   .stat-line{font-family:'Plus Jakarta Sans', sans-serif; font-size:16px; font-weight:700; margin-top:16px; text-align:center;}
   .stat-line.celebrate{color:var(--green);}
   .date-line{font-size:12.5px; color:var(--sub); margin-top:3px;}
-  .date-nav{display:flex; align-items:center; gap:10px; margin-top:3px;}
-  .date-nav-btn{
-    background:none; border:none; font-size:15px; color:var(--sub); cursor:pointer;
-    padding:2px 6px; border-radius:6px;
+  .date-nav{
+    display:flex; align-items:center; gap:14px; margin-top:12px;
+    background:var(--bg); border-radius:100px; padding:6px 8px;
   }
-  .date-nav-btn:hover{background:var(--indigo-soft); color:var(--indigo);}
-  .date-nav-btn:disabled{opacity:.3; cursor:not-allowed;}
-  .date-nav-btn:disabled:hover{background:none; color:var(--sub);}
+  .date-nav-btn{
+    width:32px; height:32px; border-radius:50%; background:var(--indigo-soft); color:var(--indigo);
+    border:none; font-size:16px; font-weight:800; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Plus Jakarta Sans',sans-serif;
+  }
+  .date-nav-btn:disabled{background:var(--line); color:var(--sub); opacity:.6; cursor:not-allowed;}
+  .date-nav-btn:hover:not(:disabled){background:var(--indigo); color:#fff;}
+  .date-nav-label{
+    font-family:'Plus Jakarta Sans', sans-serif; font-size:15px; font-weight:700; color:var(--ink);
+    min-width:150px; text-align:center;
+  }
   .jump-today{
-    margin-top:6px; background:none; border:none; color:var(--indigo); font-size:12px;
-    font-weight:700; text-decoration:underline; cursor:pointer; font-family:'Inter',sans-serif;
+    margin-top:10px; background:var(--indigo-soft); color:var(--indigo); border:none;
+    font-size:12.5px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer;
+    font-family:'Inter',sans-serif;
   }
 
   .streak-row{display:flex; gap:8px; padding:16px 20px; overflow-x:auto;}
@@ -305,7 +314,7 @@
           <div class="stat-line" id="todayCount"></div>
           <div class="date-nav">
             <button id="prevDayBtn" class="date-nav-btn">‹</button>
-            <div class="date-line" id="todayDate"></div>
+            <div class="date-nav-label" id="todayDate"></div>
             <button id="nextDayBtn" class="date-nav-btn">›</button>
           </div>
           <button class="jump-today" id="jumpTodayBtn" style="display:none;">Jump to today</button>
