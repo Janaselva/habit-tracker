@@ -1074,15 +1074,15 @@
           <div class="habit-ring">
             <svg width="58" height="58" viewBox="0 0 58 58">
               <circle cx="29" cy="29" r="24" fill="none" stroke="${reached?'#DEFBEA':'#EEEDFF'}" stroke-width="7"/>
-              <circle cx="29" cy="29" r="24" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="7"
+              <circle id="rowFastRing" cx="29" cy="29" r="24" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="7"
                 stroke-linecap="round" transform="rotate(-90 29 29)"
                 stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .4s ease"/>
             </svg>
-            <div class="habit-ring-center" style="color:${reached?'#0E8F52':'#3730A3'};">${Math.round(pct)}%</div>
+            <div class="habit-ring-center" id="rowFastPct" style="color:${reached?'#0E8F52':'#3730A3'};">${Math.round(pct)}%</div>
           </div>
           <div class="habit-info">
-            <div class="habit-name">Fasting — ${hFmtSec(elapsedHours)}</div>
-            <div class="habit-sub" style="${reached?'color:#0E8F52; font-weight:700;':''}">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
+            <div class="habit-name" id="rowFastName">Fasting — ${hFmtSec(elapsedHours)}</div>
+            <div class="habit-sub" id="rowFastSub" style="${reached?'color:#0E8F52; font-weight:700;':''}">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
             ${links}
           </div>
           ${btn}
@@ -1141,17 +1141,17 @@
           <div class="fast-ring-wrap">
             <svg width="172" height="172" viewBox="0 0 172 172">
               <circle cx="86" cy="86" r="78" fill="none" stroke="#ECEEF5" stroke-width="13"/>
-              <circle cx="86" cy="86" r="78" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="13"
+              <circle id="fastRingProgress" cx="86" cy="86" r="78" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="13"
                 stroke-linecap="round" transform="rotate(-90 86 86)"
                 stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .5s ease"/>
             </svg>
             <div class="fast-ring-center">
-              <div class="fast-elapsed ${reached?'reached':''}">${hFmtSec(elapsedHours)}</div>
+              <div class="fast-elapsed ${reached?'reached':''}" id="fastElapsedText">${hFmtSec(elapsedHours)}</div>
               <div class="fast-elapsed-sub">elapsed</div>
             </div>
           </div>
-          <div class="fast-goal-line ${reached?'reached':''}">${reached ? 'Goal reached' : `Goal: ${af.goalHours}h`}</div>
-          <div class="stage-badge ${stage.cls}">${stage.emoji} ${stage.label}</div>
+          <div class="fast-goal-line ${reached?'reached':''}" id="fastGoalLineText">${reached ? 'Goal reached' : `Goal: ${af.goalHours}h`}</div>
+          <div class="stage-badge ${stage.cls}" id="fastStageBadge">${stage.emoji} ${stage.label}</div>
         </div>`;
     } else if(af){
       const elapsedHours = (Date.now() - new Date(af.startTime).getTime()) / 3600000;
@@ -1165,16 +1165,16 @@
           <div class="fast-ring-wrap">
             <svg width="172" height="172" viewBox="0 0 172 172">
               <circle cx="86" cy="86" r="78" fill="none" stroke="#ECEEF5" stroke-width="13"/>
-              <circle cx="86" cy="86" r="78" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="13"
+              <circle id="fastRingProgress" cx="86" cy="86" r="78" fill="none" stroke="${reached?'#16C172':'#4F46E5'}" stroke-width="13"
                 stroke-linecap="round" transform="rotate(-90 86 86)"
                 stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .5s ease"/>
             </svg>
             <div class="fast-ring-center">
-              <div class="fast-elapsed ${reached?'reached':''}">${hFmtSec(elapsedHours)}</div>
+              <div class="fast-elapsed ${reached?'reached':''}" id="fastElapsedText">${hFmtSec(elapsedHours)}</div>
               <div class="fast-elapsed-sub">elapsed</div>
             </div>
           </div>
-          <div class="fast-goal-line ${reached?'reached':''}">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
+          <div class="fast-goal-line ${reached?'reached':''}" id="fastGoalLineText">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
 
           <button class="start-edit-link" id="editStartLink">Edit start time</button>
           <div class="start-edit-panel" id="startEditPanel">
@@ -1186,8 +1186,8 @@
             </div>
           </div>
 
-          <div class="stage-badge ${stage.cls}">${stage.emoji} ${stage.label}</div>
-          <div class="stage-note">${stage.note}</div>
+          <div class="stage-badge ${stage.cls}" id="fastStageBadge">${stage.emoji} ${stage.label}</div>
+          <div class="stage-note" id="fastStageNote">${stage.note}</div>
 
           <label class="end-toggle-row">
             <input type="checkbox" id="endBackdateToggle"> I already finished — set the actual end time
@@ -1339,11 +1339,74 @@
     }).join('') : `<div class="empty-row">No fasts logged yet.</div>`;
   }
 
-  // Live-tick the fasting UI every second — only while an active fast exists, to avoid unnecessary work otherwise
+  // Lightweight per-second update: only touches the numbers that actually change (clock, ring,
+  // goal line, stage badge) via direct DOM references — never touches innerHTML of the row or
+  // the Fast tab as a whole, so an open "Edit start time" panel or a checked backdate toggle
+  // is never wiped out mid-interaction the way a full re-render would.
+  function tickFastingClock(){
+    const data = activeData();
+    const af = data.activeFast;
+    if(!af) return;
+    const elapsedHours = (Date.now() - new Date(af.startTime).getTime()) / 3600000;
+    const pct = Math.min(100, (elapsedHours / af.goalHours) * 100);
+    const reached = elapsedHours >= af.goalHours;
+    const stage = fastStageFor(elapsedHours);
+    const editable = isEditable();
+
+    // Fast tab
+    const ring = document.getElementById('fastRingProgress');
+    if(ring){
+      const circ = 2 * Math.PI * 78;
+      ring.setAttribute('stroke-dashoffset', circ - (pct/100) * circ);
+      ring.style.stroke = reached ? '#16C172' : '#4F46E5';
+    }
+    const elapsedEl = document.getElementById('fastElapsedText');
+    if(elapsedEl){
+      elapsedEl.textContent = hFmtSec(elapsedHours);
+      elapsedEl.className = 'fast-elapsed' + (reached ? ' reached' : '');
+    }
+    const goalLineEl = document.getElementById('fastGoalLineText');
+    if(goalLineEl){
+      goalLineEl.className = 'fast-goal-line' + (reached ? ' reached' : '');
+      goalLineEl.textContent = editable
+        ? (reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`)
+        : (reached ? 'Goal reached' : `Goal: ${af.goalHours}h`);
+    }
+    const badgeEl = document.getElementById('fastStageBadge');
+    if(badgeEl){
+      badgeEl.className = 'stage-badge' + (stage.cls ? ' ' + stage.cls : '');
+      badgeEl.innerHTML = `${stage.emoji} ${stage.label}`;
+    }
+    const noteEl = document.getElementById('fastStageNote');
+    if(noteEl) noteEl.textContent = stage.note;
+
+    // Health-category row on Track
+    const rowRing = document.getElementById('rowFastRing');
+    if(rowRing){
+      const circ = 2 * Math.PI * 24;
+      rowRing.setAttribute('stroke-dashoffset', circ - (pct/100) * circ);
+      rowRing.style.stroke = reached ? '#16C172' : '#4F46E5';
+    }
+    const rowPct = document.getElementById('rowFastPct');
+    if(rowPct){
+      rowPct.textContent = Math.round(pct) + '%';
+      rowPct.style.color = reached ? '#0E8F52' : '#3730A3';
+    }
+    const rowName = document.getElementById('rowFastName');
+    if(rowName) rowName.textContent = 'Fasting — ' + hFmtSec(elapsedHours);
+    const rowSub = document.getElementById('rowFastSub');
+    if(rowSub){
+      rowSub.style.cssText = reached ? 'color:#0E8F52; font-weight:700;' : '';
+      rowSub.textContent = reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`;
+    }
+  }
+
+  // Live-tick the fasting UI every second — only while an active fast exists, to avoid unnecessary work otherwise.
+  // Uses the lightweight tick above, not a full re-render, so open panels / checked toggles survive.
   setInterval(()=>{
     if(document.getElementById('app').style.display === 'none') return;
     const data = activeData();
-    if(data.activeFast){ renderToday(); renderFasting(); }
+    if(data.activeFast){ tickFastingClock(); }
   }, 1000);
 
   // ---------- Streaks ----------
