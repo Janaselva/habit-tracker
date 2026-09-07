@@ -316,6 +316,36 @@
   .fast-elapsed-sub{font-size:12px; color:var(--sub); font-weight:600; margin-top:-2px;}
   .fast-goal-line{font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; margin-top:16px; color:var(--sub);}
   .fast-goal-line.reached{color:var(--green);}
+
+  .start-edit-link{
+    margin-top:6px; background:none; border:none; color:var(--indigo); font-size:12px;
+    font-weight:700; text-decoration:underline; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .start-edit-panel{display:none; width:100%; margin-top:10px; background:var(--bg); border-radius:12px; padding:14px;}
+  .start-edit-panel.open{display:block;}
+  .start-edit-panel input{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13.5px;
+    font-family:'Inter',sans-serif; background:var(--card); margin-bottom:10px;
+  }
+  .start-edit-error{color:var(--red); font-size:12px; margin:-4px 0 10px; display:none;}
+  .start-edit-actions{display:flex; gap:8px;}
+  .btn-save{
+    flex:1; padding:9px 0; border-radius:100px; border:none; background:var(--indigo); color:#fff;
+    font-size:13px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .btn-cancel{
+    flex:1; padding:9px 0; border-radius:100px; border:1px solid var(--line); background:none; color:var(--sub);
+    font-size:13px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+
+  .end-toggle-row{display:flex; align-items:center; gap:9px; font-size:13px; color:var(--sub); cursor:pointer; margin-top:20px; width:100%;}
+  .end-toggle-row input{accent-color:var(--indigo);}
+  .end-time-field{display:none; width:100%; margin-top:10px;}
+  .end-time-field input{
+    width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:10px; font-size:14px;
+    font-family:'Inter',sans-serif; background:var(--bg);
+  }
+  .end-time-error{color:var(--red); font-size:12px; margin-top:6px; display:none; width:100%;}
   .stage-badge{
     margin-top:14px; display:flex; align-items:center; gap:7px;
     background:var(--amber-soft); color:#9A6300; padding:9px 16px; border-radius:100px;
@@ -932,11 +962,12 @@
     queueSave();
     renderAll();
   }
-  function endFast(){
+  function endFast(customEndIso){
     if(!isEditable()) return;
     const af = members[uid].activeFast;
     if(!af) return;
-    const elapsedHours = Math.round(((Date.now() - new Date(af.startTime).getTime()) / 3600000) * 10) / 10;
+    const endMs = customEndIso ? new Date(customEndIso).getTime() : Date.now();
+    const elapsedHours = Math.round(((endMs - new Date(af.startTime).getTime()) / 3600000) * 10) / 10;
     let h = members[uid].habits.find(x => x.id === FASTING_HABIT_ID);
     if(!h){
       h = { id:FASTING_HABIT_ID, name:'Fasting', type:'numeric', target:af.goalHours, unit:'hours', step:0.5, category:'Health', weeklyDays:null, createdAt: todayKey() };
@@ -944,7 +975,7 @@
     } else {
       h.target = af.goalHours;
     }
-    const key = todayKey();
+    const key = customEndIso ? fmt(new Date(endMs)) : todayKey();
     if(!members[uid].logs[key]) members[uid].logs[key] = {};
     members[uid].logs[key][FASTING_HABIT_ID] = elapsedHours;
     members[uid].activeFast = null;
@@ -1079,7 +1110,7 @@
     const startBtn = container.querySelector('[data-fast-start]');
     if(startBtn) startBtn.addEventListener('click', ()=> document.querySelector('.page-tabs button[data-page="fast"]').click());
     const endBtn = container.querySelector('[data-fast-end]');
-    if(endBtn) endBtn.addEventListener('click', endFast);
+    if(endBtn) endBtn.addEventListener('click', ()=> endFast());
     const editBtn = container.querySelector('[data-fast-edit]');
     if(editBtn) editBtn.addEventListener('click', ()=> startEdit(FASTING_HABIT_ID));
     const archBtn = container.querySelector('[data-fast-archive]');
@@ -1144,12 +1175,86 @@
             </div>
           </div>
           <div class="fast-goal-line ${reached?'reached':''}">${reached ? 'Goal reached — stop anytime' : `Goal: ${af.goalHours}h · ${hFmt(af.goalHours - elapsedHours)} to go`}</div>
+
+          <button class="start-edit-link" id="editStartLink">Edit start time</button>
+          <div class="start-edit-panel" id="startEditPanel">
+            <input type="datetime-local" id="startTimeInput">
+            <p class="start-edit-error" id="startEditError"></p>
+            <div class="start-edit-actions">
+              <button class="btn-cancel" id="cancelStartEdit">Cancel</button>
+              <button class="btn-save" id="saveStartEdit">Save</button>
+            </div>
+          </div>
+
           <div class="stage-badge ${stage.cls}">${stage.emoji} ${stage.label}</div>
           <div class="stage-note">${stage.note}</div>
+
+          <label class="end-toggle-row">
+            <input type="checkbox" id="endBackdateToggle"> I already finished — set the actual end time
+          </label>
+          <div class="end-time-field" id="endTimeField">
+            <input type="datetime-local" id="endTimeInput">
+          </div>
+          <p class="end-time-error" id="endTimeError"></p>
+
           <button class="btn-fast-end" id="endFastBtn">End fast</button>
         </div>`;
-      document.getElementById('endFastBtn').addEventListener('click', endFast);
-    } else {
+
+      function toLocalInputValue(isoOrDate){
+        const d = new Date(isoOrDate);
+        const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+        return local.toISOString().slice(0,16);
+      }
+
+      document.getElementById('editStartLink').addEventListener('click', ()=>{
+        document.getElementById('startTimeInput').value = toLocalInputValue(af.startTime);
+        document.getElementById('startEditError').style.display = 'none';
+        document.getElementById('startEditPanel').classList.add('open');
+      });
+      document.getElementById('cancelStartEdit').addEventListener('click', ()=>{
+        document.getElementById('startEditPanel').classList.remove('open');
+      });
+      document.getElementById('saveStartEdit').addEventListener('click', ()=>{
+        const val = document.getElementById('startTimeInput').value;
+        if(!val) return;
+        const newIso = new Date(val).toISOString();
+        const errEl = document.getElementById('startEditError');
+        if(new Date(newIso).getTime() > Date.now()){
+          errEl.textContent = "Start time can't be in the future.";
+          errEl.style.display = 'block';
+          return;
+        }
+        members[uid].activeFast.startTime = newIso;
+        queueSave();
+        renderAll();
+      });
+
+      document.getElementById('endBackdateToggle').addEventListener('change', e=>{
+        document.getElementById('endTimeField').style.display = e.target.checked ? 'block' : 'none';
+        if(e.target.checked) document.getElementById('endTimeInput').value = toLocalInputValue(new Date());
+      });
+
+      document.getElementById('endFastBtn').addEventListener('click', ()=>{
+        const backdated = document.getElementById('endBackdateToggle').checked;
+        const errEl = document.getElementById('endTimeError');
+        errEl.style.display = 'none';
+        if(!backdated){ endFast(); return; }
+        const val = document.getElementById('endTimeInput').value;
+        if(!val) return;
+        const endIso = new Date(val).toISOString();
+        const endMs = new Date(endIso).getTime();
+        if(endMs > Date.now()){
+          errEl.textContent = "End time can't be in the future.";
+          errEl.style.display = 'block';
+          return;
+        }
+        if(endMs < new Date(af.startTime).getTime()){
+          errEl.textContent = "End time can't be before the start time.";
+          errEl.style.display = 'block';
+          return;
+        }
+        endFast(endIso);
+      });
       const goals = [12,14,16,18,20,24];
       timerArea.innerHTML = `
         <div class="start-block">
