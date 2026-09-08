@@ -208,6 +208,34 @@
   }
 
   .hist-head{display:flex; align-items:center; justify-content:space-between; padding:20px 22px 2px;}
+  .sub-tabs{display:flex; gap:8px; padding:12px 22px 4px;}
+  .sub-tabs button{
+    flex:1; border:1px solid var(--line); background:var(--bg); padding:10px 0; border-radius:12px;
+    font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; color:var(--sub); cursor:pointer;
+  }
+  .sub-tabs button.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+  .cat-label{font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; color:var(--indigo); padding:16px 22px 6px;}
+  .cat-label:first-child{padding-top:8px;}
+  .insight-card{padding:14px 22px; border-top:1px solid var(--line);}
+  .insight-top{display:flex; align-items:center; gap:12px;}
+  .insight-ring-dot{width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;}
+  .insight-name{font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; font-weight:700; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .insight-avg{text-align:right; flex-shrink:0;}
+  .insight-avg-val{font-family:'Plus Jakarta Sans',sans-serif; font-size:17px; font-weight:800;}
+  .insight-avg-label{font-size:10.5px; color:var(--sub); font-weight:600;}
+  .trend-pill{
+    display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:100px;
+    font-size:11px; font-weight:700; margin-top:10px; font-family:'Inter',sans-serif;
+  }
+  .trend-pill.up{background:var(--green-soft); color:#0E8F52;}
+  .trend-pill.down{background:#FDE8E8; color:#B91C1C;}
+  .trend-pill.flat{background:var(--line); color:var(--sub);}
+  .mini-bars{display:flex; align-items:flex-end; gap:5px; height:44px; margin-top:12px;}
+  .mbar-wrap{flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center;}
+  .mbar{width:100%; background:var(--line); border-radius:3px 3px 0 0; min-height:3px; overflow:hidden; display:flex; align-items:flex-end;}
+  .mbar-fill{width:100%; border-radius:3px 3px 0 0;}
+  .mbar-label{font-size:8.5px; color:var(--sub); margin-top:4px; font-weight:600; font-family:'Plus Jakarta Sans',sans-serif;}
   .seg{display:flex; background:var(--bg); border:1px solid var(--line); border-radius:100px; padding:3px;}
   .seg button{border:none; background:transparent; padding:6px 13px; border-radius:100px; font-size:12px; font-weight:700; color:var(--sub); cursor:pointer; font-family:'Inter',sans-serif;}
   .seg button.active{background:var(--indigo); color:#fff;}
@@ -504,25 +532,34 @@
     <div class="page" id="page-reports">
       <div class="sheet">
         <div class="hist-head">
-          <h2 class="display" style="font-size:17px; font-weight:800;">History</h2>
-          <div class="seg" id="viewSeg">
-            <button data-view="week" class="active">Week</button>
-            <button data-view="month">Month</button>
-            <button data-view="year">Year</button>
-          </div>
+          <h2 class="display" style="font-size:17px; font-weight:800;">Reports</h2>
+        </div>
+        <div class="sub-tabs" id="reportsSubTabs">
+          <button data-sub="history" class="active">History</button>
+          <button data-sub="insights">Insights</button>
+        </div>
+        <div class="seg" id="viewSeg">
+          <button data-view="week" class="active">Week</button>
+          <button data-view="month">Month</button>
+          <button data-view="year">Year</button>
         </div>
         <div class="nav-row">
           <button id="prevBtn">‹</button>
           <div class="label" id="periodLabel"></div>
           <button id="nextBtn">›</button>
         </div>
-        <div class="period-pct" id="periodPct"></div>
 
-        <div id="weekView"></div>
-        <div id="monthView" style="display:none;"></div>
-        <div id="yearView" style="display:none;"></div>
+        <div id="historySubPane">
+          <div class="period-pct" id="periodPct"></div>
+          <div id="weekView"></div>
+          <div id="monthView" style="display:none;"></div>
+          <div id="yearView" style="display:none;"></div>
+          <div class="breakdown" id="breakdown"></div>
+        </div>
 
-        <div class="breakdown" id="breakdown"></div>
+        <div id="insightsSubPane" style="display:none;">
+          <div id="insightsList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1621,6 +1658,17 @@
     }
   }
 
+  // ---------- Reports sub-tabs (History / Insights) ----------
+  document.getElementById('reportsSubTabs').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#reportsSubTabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const isHistory = btn.dataset.sub === 'history';
+    document.getElementById('historySubPane').style.display = isHistory ? 'block' : 'none';
+    document.getElementById('insightsSubPane').style.display = isHistory ? 'none' : 'block';
+    if(!isHistory) renderInsights();
+  });
+
   // ---------- Render: History (Reports page) ----------
   document.getElementById('viewSeg').addEventListener('click', e=>{
     const btn = e.target.closest('button'); if(!btn) return;
@@ -1630,14 +1678,20 @@
     document.getElementById('weekView').style.display = view==='week' ? 'block':'none';
     document.getElementById('monthView').style.display = view==='month' ? 'block':'none';
     document.getElementById('yearView').style.display = view==='year' ? 'block':'none';
-    renderHistory();
+    renderReports();
   });
-  document.getElementById('prevBtn').addEventListener('click', ()=>{ shiftPeriod(-1); renderHistory(); });
-  document.getElementById('nextBtn').addEventListener('click', ()=>{ shiftPeriod(1); renderHistory(); });
+  document.getElementById('prevBtn').addEventListener('click', ()=>{ shiftPeriod(-1); renderReports(); });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{ shiftPeriod(1); renderReports(); });
   function shiftPeriod(dir){
     if(view === 'week') weekAnchor.setDate(weekAnchor.getDate() + dir*7);
     else if(view === 'month') monthAnchor.setMonth(monthAnchor.getMonth() + dir);
     else yearAnchor += dir;
+  }
+  // renderHistory() only updates the History sub-pane; renderInsights() only updates Insights.
+  // renderReports() runs both so switching sub-tabs or navigating never shows stale data.
+  function renderReports(){
+    renderHistory();
+    renderInsights();
   }
 
   function zoneColor(pct, hasData){
@@ -1799,9 +1853,170 @@
     el.innerHTML = html;
   }
 
+  // ---------- Render: Insights (Reports page) ----------
+  // Days making up the currently-selected period, capped at today (never includes future dates).
+  function currentPeriodDays(){
+    const todayStr = todayKey();
+    if(view === 'week'){
+      const days = [];
+      for(let i=0;i<7;i++){ const d = new Date(weekAnchor); d.setDate(d.getDate()+i); if(fmt(d) <= todayStr) days.push(d); }
+      return days;
+    }
+    if(view === 'month'){
+      const year = monthAnchor.getFullYear(), month = monthAnchor.getMonth();
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      const days = [];
+      for(let day=1; day<=daysInMonth; day++){ const d = new Date(year, month, day); if(fmt(d) <= todayStr) days.push(d); }
+      return days;
+    }
+    const days = [];
+    for(let m=0; m<12; m++){
+      const daysInMonth = new Date(yearAnchor, m+1, 0).getDate();
+      for(let day=1; day<=daysInMonth; day++){ const d = new Date(yearAnchor, m, day); if(fmt(d) <= todayStr) days.push(d); }
+    }
+    return days;
+  }
+  // The immediately-prior period of the same length/kind, for trend comparison. Always fully in
+  // the past, so never capped at today the way currentPeriodDays() is.
+  function previousPeriodDays(){
+    if(view === 'week'){
+      const prevAnchor = new Date(weekAnchor); prevAnchor.setDate(prevAnchor.getDate() - 7);
+      const days = [];
+      for(let i=0;i<7;i++){ const d = new Date(prevAnchor); d.setDate(d.getDate()+i); days.push(d); }
+      return days;
+    }
+    if(view === 'month'){
+      const pm = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth()-1, 1);
+      const year = pm.getFullYear(), month = pm.getMonth();
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      const days = [];
+      for(let day=1; day<=daysInMonth; day++) days.push(new Date(year, month, day));
+      return days;
+    }
+    const py = yearAnchor - 1;
+    const days = [];
+    for(let m=0; m<12; m++){
+      const daysInMonth = new Date(py, m+1, 0).getDate();
+      for(let day=1; day<=daysInMonth; day++) days.push(new Date(py, m, day));
+    }
+    return days;
+  }
+  // Buckets for the mini bar chart: 7 daily bars for Week, ~4-5 weekly bars for Month
+  // (30 daily bars would be too cramped), 12 monthly bars for Year.
+  function periodBuckets(){
+    const days = currentPeriodDays();
+    if(view === 'week'){
+      return days.map(d => ({ label: DOW[(d.getDay()+6)%7], days: [d] }));
+    }
+    if(view === 'month'){
+      const buckets = [];
+      for(let i=0; i<days.length; i+=7){
+        buckets.push({ label: 'W'+(buckets.length+1), days: days.slice(i, i+7) });
+      }
+      return buckets;
+    }
+    const buckets = [];
+    for(let m=0; m<12; m++){
+      buckets.push({ label: MONTHS[m][0], days: days.filter(d => d.getMonth() === m) });
+    }
+    return buckets;
+  }
+  // Average for a numeric habit (0 counts for unlogged scheduled days, so the average reflects
+  // real behavior including misses, not just days you happened to log). % of days done for checkbox habits.
+  function habitAvgOverDays(habit, dateObjs, data){
+    const scheduledDays = dateObjs.filter(d => isScheduled(habit, d));
+    if(scheduledDays.length === 0) return null;
+    if(habit.type === 'numeric'){
+      let sum = 0;
+      scheduledDays.forEach(d => { const log = data.logs[fmt(d)] || {}; sum += (log[habit.id] || 0); });
+      return { value: sum / scheduledDays.length, isPct: false };
+    }
+    let done = 0;
+    scheduledDays.forEach(d => { const log = data.logs[fmt(d)] || {}; if(isDone(habit, log[habit.id])) done++; });
+    return { value: Math.round((done/scheduledDays.length)*100), isPct: true };
+  }
+  function trendInfo(prevVal, curVal){
+    if(prevVal === null) return { cls:'flat', arrow:'→', text:'No prior data' };
+    if(prevVal === 0 && curVal === 0) return { cls:'flat', arrow:'→', text:'Holding steady' };
+    if(prevVal === 0) return { cls:'up', arrow:'↑', text:'Up from zero' };
+    const pctChange = Math.round(((curVal - prevVal) / prevVal) * 100);
+    const periodWord = view === 'week' ? 'last week' : view === 'month' ? 'last month' : 'last year';
+    if(Math.abs(pctChange) < 5) return { cls:'flat', arrow:'→', text:'Holding steady' };
+    if(pctChange > 0) return { cls:'up', arrow:'↑', text:`Up ${pctChange}% vs ${periodWord}` };
+    return { cls:'down', arrow:'↓', text:`Down ${Math.abs(pctChange)}% vs ${periodWord}` };
+  }
+  function formatAvgValue(v){
+    const rounded = Math.round(v * 10) / 10;
+    return rounded.toLocaleString();
+  }
+
+  function renderInsights(){
+    const data = activeData();
+    const days = currentPeriodDays();
+    const prevDays = previousPeriodDays();
+    const buckets = periodBuckets();
+
+    if(data.habits.length === 0){
+      document.getElementById('insightsList').innerHTML = `<div class="empty-row">No habits yet.</div>`;
+      return;
+    }
+
+    // Stable color per habit based on position in the full stored list, so colors match Today's
+    // ring colors and don't shift around if habits are archived/restored.
+    const colorIndex = {};
+    data.habits.forEach((h,i)=>{ colorIndex[h.id] = i; });
+
+    let html = '';
+    CATEGORIES.forEach(cat=>{
+      const inCat = data.habits.filter(h => (h.category||'Other') === cat);
+      if(inCat.length === 0) return;
+      let catHtml = '';
+      inCat.forEach(h=>{
+        const cur = habitAvgOverDays(h, days, data);
+        if(!cur) return; // not scheduled at all during this period
+        const prev = habitAvgOverDays(h, prevDays, data);
+        const trend = trendInfo(prev ? prev.value : null, cur.value);
+        const c = habitColor(colorIndex[h.id] || 0);
+
+        const bucketVals = buckets.map(b => {
+          const s = habitAvgOverDays(h, b.days, data);
+          return s ? s.value : null;
+        });
+        const goalForBars = cur.isPct ? 100 : (h.target || Math.max(...bucketVals.filter(v=>v!==null), 1));
+        const maxBar = Math.max(...bucketVals.filter(v=>v!==null), goalForBars, 1);
+        const barsHtml = buckets.map((b,i)=>{
+          const v = bucketVals[i];
+          if(v === null) return `<div class="mbar-wrap"><div class="mbar" style="height:100%;"><div class="mbar-fill" style="height:4%; background:var(--line)"></div></div><div class="mbar-label">${b.label}</div></div>`;
+          const barH = Math.max(6, Math.round((v/maxBar)*100));
+          const barColor = v >= goalForBars ? 'var(--green)' : (v >= goalForBars*0.75 ? 'var(--amber)' : 'var(--red)');
+          return `<div class="mbar-wrap"><div class="mbar" style="height:100%;"><div class="mbar-fill" style="height:${barH}%; background:${barColor}"></div></div><div class="mbar-label">${b.label}</div></div>`;
+        }).join('');
+
+        const avgDisplay = cur.isPct ? `${cur.value}%` : formatAvgValue(cur.value);
+        const avgLabel = cur.isPct ? 'of days' : `avg ${escapeHtml(h.unit || '')}`;
+
+        catHtml += `
+          <div class="insight-card">
+            <div class="insight-top">
+              <div class="insight-ring-dot" style="background:${c.soft}; color:${c.ring};">●</div>
+              <div class="insight-name">${escapeHtml(h.name)}${h.archived ? ' · archived' : ''}</div>
+              <div class="insight-avg">
+                <div class="insight-avg-val" style="color:${c.ring};">${avgDisplay}</div>
+                <div class="insight-avg-label">${avgLabel}</div>
+              </div>
+            </div>
+            <div class="trend-pill ${trend.cls}">${trend.arrow} ${trend.text}</div>
+            <div class="mini-bars">${barsHtml}</div>
+          </div>`;
+      });
+      if(catHtml){ html += `<div class="cat-label">${cat}</div>` + catHtml; }
+    });
+    document.getElementById('insightsList').innerHTML = html || `<div class="empty-row">Nothing scheduled in this period yet.</div>`;
+  }
+
   function renderAll(){
     renderToday();
-    renderHistory();
+    renderReports();
     renderFasting();
   }
 </script>
