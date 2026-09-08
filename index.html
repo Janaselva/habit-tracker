@@ -231,7 +231,7 @@
   .trend-pill.up{background:var(--green-soft); color:#0E8F52;}
   .trend-pill.down{background:#FDE8E8; color:#B91C1C;}
   .trend-pill.flat{background:var(--line); color:var(--sub);}
-  .mini-bars{display:flex; align-items:flex-end; gap:5px; height:44px; margin-top:12px;}
+  .mini-bars{display:flex; align-items:flex-end; gap:5px; height:76px; margin-top:12px;}
   .mbar-wrap{flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center;}
   .mbar{width:100%; background:var(--line); border-radius:3px 3px 0 0; min-height:3px; overflow:hidden; display:flex; align-items:flex-end;}
   .mbar-fill{width:100%; border-radius:3px 3px 0 0;}
@@ -1904,10 +1904,18 @@
   // Buckets for the mini bar chart: 7 daily bars for Week, ~4-5 weekly bars for Month
   // (30 daily bars would be too cramped), 12 monthly bars for Year.
   function periodBuckets(){
-    const days = currentPeriodDays();
+    const todayStr = todayKey();
     if(view === 'week'){
-      return days.map(d => ({ label: DOW[(d.getDay()+6)%7], days: [d] }));
+      // Always 7 buckets, even mid-week — a future day just gets an empty days array,
+      // which renders as a grey placeholder bar rather than being silently dropped.
+      const buckets = [];
+      for(let i=0;i<7;i++){
+        const d = new Date(weekAnchor); d.setDate(d.getDate()+i);
+        buckets.push({ label: DOW[(d.getDay()+6)%7], days: fmt(d) <= todayStr ? [d] : [] });
+      }
+      return buckets;
     }
+    const days = currentPeriodDays();
     if(view === 'month'){
       const buckets = [];
       for(let i=0; i<days.length; i+=7){
@@ -1982,6 +1990,9 @@
           const s = habitAvgOverDays(h, b.days, data);
           return s ? s.value : null;
         });
+        // Height scales against the target, same as color — a bar's height is literally
+        // "how close to goal", not just a relative comparison to the week's own values.
+        // The taller 76px chart (vs the original 44px) gives this more room to read clearly.
         const goalForBars = cur.isPct ? 100 : (h.target || Math.max(...bucketVals.filter(v=>v!==null), 1));
         const maxBar = Math.max(...bucketVals.filter(v=>v!==null), goalForBars, 1);
         const barsHtml = buckets.map((b,i)=>{
