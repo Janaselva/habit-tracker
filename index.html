@@ -235,6 +235,7 @@
   .mbar-wrap{flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center;}
   .mbar{width:100%; background:var(--line); border-radius:3px 3px 0 0; min-height:3px; overflow:hidden; display:flex; align-items:flex-end;}
   .mbar-fill{width:100%; border-radius:3px 3px 0 0;}
+  .mbar-value{font-size:8px; font-weight:700; color:var(--sub); margin-bottom:3px; font-family:'Plus Jakarta Sans',sans-serif; white-space:nowrap;}
   .mbar-label{font-size:8.5px; color:var(--sub); margin-top:4px; font-weight:600; font-family:'Plus Jakarta Sans',sans-serif;}
   .seg{display:flex; background:var(--bg); border:1px solid var(--line); border-radius:100px; padding:3px;}
   .seg button{border:none; background:transparent; padding:6px 13px; border-radius:100px; font-size:12px; font-weight:700; color:var(--sub); cursor:pointer; font-family:'Inter',sans-serif;}
@@ -1915,14 +1916,23 @@
       }
       return buckets;
     }
-    const days = currentPeriodDays();
     if(view === 'month'){
+      // Build the bucket structure from the FULL month (not the today-capped day list —
+      // that was the earlier bug: it silently limited bucket count to however many days
+      // had elapsed, so mid-month only showed 1-2 weeks instead of the real 4-5).
+      // Each bucket's own days are still capped at today, so a future week is simply empty/grey.
+      const year = monthAnchor.getFullYear(), month = monthAnchor.getMonth();
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      const allDays = [];
+      for(let day=1; day<=daysInMonth; day++) allDays.push(new Date(year, month, day));
       const buckets = [];
-      for(let i=0; i<days.length; i+=7){
-        buckets.push({ label: 'W'+(buckets.length+1), days: days.slice(i, i+7) });
+      for(let i=0; i<allDays.length; i+=7){
+        const chunk = allDays.slice(i, i+7).filter(d => fmt(d) <= todayStr);
+        buckets.push({ label: 'W'+(buckets.length+1), days: chunk });
       }
       return buckets;
     }
+    const days = currentPeriodDays();
     const buckets = [];
     for(let m=0; m<12; m++){
       buckets.push({ label: MONTHS[m][0], days: days.filter(d => d.getMonth() === m) });
@@ -1956,6 +1966,12 @@
   function formatAvgValue(v){
     const rounded = Math.round(v * 10) / 10;
     return rounded.toLocaleString();
+  }
+  // Compact form for the small value label above each bar — abbreviates large numbers
+  // (steps, etc.) so they don't overflow a ~35px-wide bar.
+  function formatBarValue(v){
+    if(v >= 1000) return (Math.round(v/100)/10) + 'k';
+    return Number.isInteger(v) ? String(v) : (Math.round(v*10)/10).toString();
   }
 
   function renderInsights(){
@@ -2000,7 +2016,8 @@
           if(v === null) return `<div class="mbar-wrap"><div class="mbar" style="height:100%;"><div class="mbar-fill" style="height:4%; background:var(--line)"></div></div><div class="mbar-label">${b.label}</div></div>`;
           const barH = Math.max(6, Math.round((v/maxBar)*100));
           const barColor = v >= goalForBars ? 'var(--green)' : (v >= goalForBars*0.75 ? 'var(--amber)' : 'var(--red)');
-          return `<div class="mbar-wrap"><div class="mbar" style="height:100%;"><div class="mbar-fill" style="height:${barH}%; background:${barColor}"></div></div><div class="mbar-label">${b.label}</div></div>`;
+          const valueLabel = cur.isPct ? `${v}%` : formatBarValue(v);
+          return `<div class="mbar-wrap"><div class="mbar-value">${valueLabel}</div><div class="mbar" style="height:100%;"><div class="mbar-fill" style="height:${barH}%; background:${barColor}"></div></div><div class="mbar-label">${b.label}</div></div>`;
         }).join('');
 
         const avgDisplay = cur.isPct ? `${cur.value}%` : formatAvgValue(cur.value);
