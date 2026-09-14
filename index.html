@@ -819,6 +819,7 @@
   function isEditable(){ return viewingUid === uid; }
   function activeData(){ return members[viewingUid] || { habits:[], logs:{} }; }
   function isDone(habit, rawValue){
+    if(habit.id === FASTING_HABIT_ID) return (rawValue || 0) >= 12;
     if(habit.type === 'numeric') return (rawValue || 0) >= habit.target;
     return !!rawValue;
   }
