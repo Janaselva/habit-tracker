@@ -409,6 +409,19 @@
     width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center;
     font-size:11px; color:#fff; flex-shrink:0;
   }
+  .frow-edit-btn{flex-shrink:0;}
+  .frow-editing{flex-direction:column; align-items:stretch; padding:12px 18px 14px; gap:8px;}
+  .frow-editing-head{display:flex; align-items:center; justify-content:space-between;}
+  .frow-editing-head .frow-date{flex:none;}
+  .frow-edit-hint{font-size:11px; color:var(--sub);}
+  .frow-edit-inputs{display:flex; align-items:center; gap:8px;}
+  .frow-edit-inputs input{
+    width:64px; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px;
+    font-family:'Inter',sans-serif; background:var(--bg); text-align:center;
+  }
+  .frow-edit-inputs label{font-size:11px; color:var(--sub); display:flex; flex-direction:column; align-items:center; gap:4px;}
+  .frow-edit-error{color:var(--red); font-size:12px; display:none;}
+  .frow-edit-actions{display:flex; gap:8px; margin-top:2px;}
 </style>
 </head>
 <body>
@@ -988,6 +1001,7 @@
 
   // ---------- Fasting ----------
   let selectedFastGoal = 16;
+  let editingFastLogDate = null; // date-key of the recent-fasts row currently in inline edit mode, or null
 
   function startFast(goalHours, customStartIso){
     if(!isEditable()) return;
@@ -1018,6 +1032,18 @@
     if(!members[uid].logs[key]) members[uid].logs[key] = {};
     members[uid].logs[key][FASTING_HABIT_ID] = elapsedHours;
     members[uid].activeFast = null;
+    queueSave();
+    renderAll();
+  }
+
+  // Corrects an already-logged fast's duration (e.g. "End" was tapped before the real end time
+  // was set) — only the final hour count is stored per completed fast, not start/end timestamps,
+  // so this edits total duration directly rather than a clock time.
+  function editFastLogHours(dateKey, newHours){
+    if(!isEditable()) return;
+    if(!members[uid].logs[dateKey]) return;
+    if(members[uid].logs[dateKey][FASTING_HABIT_ID] === undefined) return;
+    members[uid].logs[dateKey][FASTING_HABIT_ID] = Math.round(newHours * 10) / 10;
     queueSave();
     renderAll();
   }
@@ -1369,13 +1395,63 @@
     document.getElementById('fastRecentList').innerHTML = recent.length ? recent.map(e=>{
       const met = habit && e.hours >= habit.target;
       const dLabel = parseKey(e.date).toLocaleDateString([], { month:'short', day:'numeric' });
+      if(editable && editingFastLogDate === e.date){
+        const eh = Math.floor(e.hours);
+        const em = Math.round((e.hours - eh) * 60);
+        return `
+          <div class="frow frow-editing">
+            <div class="frow-editing-head">
+              <div class="frow-date">${dLabel}</div>
+              <span class="frow-edit-hint">Editing duration</span>
+            </div>
+            <div class="frow-edit-inputs">
+              <label>Hours<input type="number" min="0" max="48" id="frowHInput" value="${eh}"></label>
+              <label>Minutes<input type="number" min="0" max="59" id="frowMInput" value="${em}"></label>
+            </div>
+            <p class="frow-edit-error" id="frowEditErr"></p>
+            <div class="frow-edit-actions">
+              <button class="btn-cancel" id="frowCancelBtn">Cancel</button>
+              <button class="btn-save" id="frowSaveBtn" data-save-date="${e.date}">Save</button>
+            </div>
+          </div>`;
+      }
       return `
         <div class="frow">
           <div class="frow-date">${dLabel}</div>
           <div class="frow-dur">${hFmt(e.hours)}</div>
           <div class="frow-check" style="background:${met?'var(--green)':'var(--line)'}; color:${met?'#fff':'var(--sub)'};">${met?'✓':''}</div>
+          ${editable ? `<button class="link-btn frow-edit-btn" data-edit-date="${e.date}">Edit</button>` : ''}
         </div>`;
     }).join('') : `<div class="empty-row">No fasts logged yet.</div>`;
+
+    if(editable){
+      document.querySelectorAll('#fastRecentList [data-edit-date]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{ editingFastLogDate = btn.dataset.editDate; renderFasting(); });
+      });
+      const frowCancelBtn = document.getElementById('frowCancelBtn');
+      if(frowCancelBtn) frowCancelBtn.addEventListener('click', ()=>{ editingFastLogDate = null; renderFasting(); });
+      const frowSaveBtn = document.getElementById('frowSaveBtn');
+      if(frowSaveBtn) frowSaveBtn.addEventListener('click', ()=>{
+        const dateKey = frowSaveBtn.dataset.saveDate;
+        const hVal = parseInt(document.getElementById('frowHInput').value, 10);
+        const mVal = parseInt(document.getElementById('frowMInput').value, 10);
+        const errEl = document.getElementById('frowEditErr');
+        errEl.style.display = 'none';
+        if(isNaN(hVal) || isNaN(mVal) || hVal < 0 || mVal < 0 || mVal > 59){
+          errEl.textContent = "Enter a valid duration.";
+          errEl.style.display = 'block';
+          return;
+        }
+        const totalHours = hVal + mVal/60;
+        if(totalHours <= 0 || totalHours > 48){
+          errEl.textContent = "Duration must be between 0 and 48 hours.";
+          errEl.style.display = 'block';
+          return;
+        }
+        editingFastLogDate = null;
+        editFastLogHours(dateKey, totalHours);
+      });
+    }
   }
 
   // Lightweight per-second update: only touches the numbers that actually change (clock, ring,
